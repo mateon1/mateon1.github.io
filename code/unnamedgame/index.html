@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="chrome=1">
+        
+        <title>Unnamed game!</title>
+        
+        <style>
+            body {
+                margin: 0;
+                background-color: #00F;
+            }
+            
+            #content {
+                width: 800px;
+                padding-top: 3px;
+                margin: 5px auto 0 auto;
+                background-color: #0F0;
+            }
+            
+            #title {
+                text-align: center;
+                font-size: 36pt;
+                background-color: #0FF;
+            }
+            
+            #instructions {
+                margin-left: 24px;
+                font-family: monospace;
+            }
+            
+            canvas {
+                background-color: #F00;
+            }
+        </style>
+        <script src="modules.js"></script>
+    </head>
+    <body>
+        <div id="content">
+            <div id="title">Unnamed thing!</div>
+            <div id="instructions">
+                Instructions:<br>
+                * Do X to do Y<br>
+                * Do 8 in order to Z<br>
+            </div>
+            <hr>
+            <canvas id="gamecanvas" width="800" height="600"></canvas>
+        </div>
+    </body>
+</html>
