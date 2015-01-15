@@ -1,0 +1,26 @@
+body {
+    margin: 0;
+    background-color: #00F;
+}
+
+#content {
+    width: 800px;
+    padding-top: 3px;
+    margin: 5px auto 0 auto;
+    background-color: #0F0;
+}
+
+#title {
+    text-align: center;
+    font-size: 36pt;
+    background-color: #0FF;
+}
+
+#instructions {
+    margin-left: 24px;
+    font-family: monospace;
+}
+
+canvas {
+    background-color: #F0F; /* debug purple :> */
+}

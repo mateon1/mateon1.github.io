@@ -3,38 +3,18 @@
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="chrome=1">
+        <!-- Can't get this to work, Chrome's internals use 'unsafe-eval' -->
+        <!--meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'"-->
         
         <title>Unnamed game!</title>
         
-        <style>
-            body {
-                margin: 0;
-                background-color: #00F;
-            }
-            
-            #content {
-                width: 800px;
-                padding-top: 3px;
-                margin: 5px auto 0 auto;
-                background-color: #0F0;
-            }
-            
-            #title {
-                text-align: center;
-                font-size: 36pt;
-                background-color: #0FF;
-            }
-            
-            #instructions {
-                margin-left: 24px;
-                font-family: monospace;
-            }
-            
-            canvas {
-                background-color: #F00;
-            }
-        </style>
+        <link rel="stylesheet" type="text/css" href="style.css">
+        
         <script src="modules.js"></script>
+        <script src="constants.js"></script>
+        <script src="render.js"></script>
+        <script src="game.js"></script>
+        <script src="util.js"></script>
     </head>
     <body>
         <div id="content">

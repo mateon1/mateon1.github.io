@@ -54,6 +54,9 @@
         var name = "#require#" + nextRequireId;
         nextRequireId += 1;
         modules[name] = {
+            /* Nice property of [].concat:
+             *  [].concat(["dependency"]) => ["dependency"]
+             *  [].concat("dependency")   => ["dependency"] */
             dependencies: [].concat(dependencies),
             func: func};
         checkModule(name);
