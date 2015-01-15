@@ -1,7 +1,7 @@
 /*jshint bitwise: true, camelcase: true, curly: true, eqeqeq: true, es3: true, forin: true, freeze: true, immed: true, latedef: true, newcap: true, noarg: true, noempty: true, nonbsp: true, nonew: true, plusplus: true, quotmark: double, undef: true, unused: strict, strict: true, browser: true, maxparams: 8, maxdepth: 4, maxstatements: 20, maxlen: 80*/
 /*global define */
 
-define("render", ["constants"], function (CONST) {
+define("render", ["util", "constants"], function (util, CONST) {
     "use strict";
     
     var canvas, ctx, bufferCanvas, bufferCtx,
@@ -136,9 +136,7 @@ define("render", ["constants"], function (CONST) {
         //var pixel = parseColor(color),
         //    rect = rectangify(w, h, pixel);
         //bufferCtx.putImageData(rect, x, y);
-        bufferCtx.fillStyle = "rgb(" + color[0] + ", " +
-                                       color[1] + ", " +
-                                       color[2] + ")";
+        bufferCtx.fillStyle = util.colorToHex(color);
         bufferCtx.fillRect(x, y, w, h);
     };
     
