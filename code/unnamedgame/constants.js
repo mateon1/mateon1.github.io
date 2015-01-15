@@ -4,4 +4,7 @@
 define("constants", [], function () {
     "use strict";
     this.SCALE = 4; // 4 screen pixels per game pixel
+    
+    this.SKY_COLOR = [0x8C, 0xC6, 0xFF];
+    
 });

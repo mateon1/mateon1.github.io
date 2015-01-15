@@ -15,4 +15,15 @@ define("util", [], function () {
     this.choice = function (array) {
         return array[this.random(array.length)];
     };
+    
+    this.cycle = function (number, modulo, divident) {
+        return Math.floor(number / divident) % modulo;
+    };
+    
+    this.colorToHex = function (color) {
+        return "#" + ("0" + (color[0] * 65536 +
+                             color[1] * 256 +
+                             color[2]).toString(16)
+                      ).slice(-6);
+    };
 });
