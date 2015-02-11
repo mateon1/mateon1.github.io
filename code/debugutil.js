@@ -3,6 +3,7 @@
     
     var INSPECT_DEFAULT_DEPTH = 3,
         INSPECT_DEFAULT_INDENT = 2, // 1 or greater
+        INSPECT_DEFAULT_LONGSTR = 90,
         TAB_WIDTH = 4,
         
         OBJECT = {}.constructor,
@@ -84,8 +85,11 @@
     function inspect(object, settings) {
         if (!settings) {settings = {}; }
         var maxDepth = settings.maxDepth,
-            indent = settings.indent || INSPECT_DEFAULT_INDENT;
+            indent = settings.indent || INSPECT_DEFAULT_INDENT,
+            functions = settings.functions,
+            longstr = settings.longstr || INSPECT_DEFAULT_LONGSTR;
         if (maxDepth === undef) {maxDepth = INSPECT_DEFAULT_DEPTH; }
+        if (functions === undef) {functions = false; }
         
         function inspMapRepr(obj, depth) {
             var keys = OBJECT.keys(obj);
@@ -105,8 +109,27 @@
             }, []).join(",\n"), indent).slice(1) + "}";
         }
         
-        function inspArrRepr(obj, depth) {
-            return "[...]"; // TODO: Arrays!
+        function inspArrRepr(arr, depth) {
+            if (arr.length === 0) {
+                return "[]";
+            } else if (depth < 0) {
+                return "[...]";
+            }
+            
+            var inspd = [];
+            
+            for (var i = 0; i < arr.length; i++) {
+                inspd.push(inspectProp(arr, i));
+            }
+            
+            if (!inspd.reduce(function hasNewlines(last, now) {
+                return last || now.indexOf("\n") !== -1;
+            }, false) && inspd.join(", ").length < 70) {
+                // no newlines and short
+                return "[" + inspd.join(", ") + "]";
+            }
+            
+            return "[" + indentOne(inspd.join(",\n"), indent).slice(1) + "]";
         }
         
         function inspectProp(obj, key, depth) {
@@ -142,10 +165,16 @@
             var type = typeof obj,
                 realType = OBJECT.prototype.toString.call(obj).slice(8, -1);
             if (type === "string") {
-                return "[primitive <string>: " + stringRepr(obj) + "]";
+                var r = stringRepr(obj);
+                return "[primitive <string>: " +
+                        (r.length > longstr ? r.length + " char..." : r) + "]";
             } else if (type === "function") {
-                return "[primitive <function>:\n" +
-                            indentOne(fixIndentation(obj) + "]");
+                if (functions) {
+                    return "[primitive <function>:\n" +
+                                indentOne(fixIndentation(obj) + "]");
+                }
+                return "[primitive <function>: " +
+                    (/^function \w*\([^\)]*\)/).exec("" + obj)[0] + " {...}]";
             } else if (type !== "object") {
                 return "[primitive <" + typeof obj + ">: " + obj + "]";
             } else if (obj === null) {
@@ -168,7 +197,7 @@
             }
             
             var s = "" + obj;
-            if (s.length > 0) {
+            if (s.length > 0 && stringRepr(s).length < longstr) {
                 return "[<" + realType + ">: " + stringRepr(s) + "]";
             }
             return "[<" + realType + ">]";
