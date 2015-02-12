@@ -20,42 +20,22 @@
     }
     
     function stringRepr(str) {
+        var map = {"0" : "0", "8" : "b", "9" : "t", "10": "n",
+                   "11": "v", "12": "f", "13": "r"};
         var result = ['"'];
-        for (var i = 0; i < str.length; i++) {
-            var c = str[i].charCodeAt(0);
+        str.replace(/[^\0-\u001F\\"\u0080-\uFFFF]*|([\S\s])/g, function stringReprMatcher(match, $1) {
+            var c = match.charCodeAt(0);
             if (c < 32 || c > 127) {
-                switch (c) {
-                    case 13:
-                        result.push("\\r");
-                        break;
-                    case 12:
-                        result.push("\\f");
-                        break;
-                    case 11:
-                        result.push("\\v");
-                        break;
-                    case 10:
-                        result.push("\\n");
-                        break;
-                    case 9:
-                        result.push("\\t");
-                        break;
-                    case 8:
-                        result.push("\\b");
-                        break;
-                    case 0:
-                        result.push("\\0");
-                        break;
-                    default:
-                        result.push("\\u" + zeroPad(4, c.toString(16)));
+                if (c in map) {
+                    return result.push(map[c]);
                 }
-            } else {
-                if (c === 92 || c === 34) { // backslash || double quote
-                    result.push("\\");
-                }
-                result.push(str[i]);
+                
+                return result.push("\\u" + zeroPad(4, c.toString(16)));
+            } else if ($1) {
+                return result.push("\\" + $1);
             }
-        }
+            return result.push(match);
+        });
         result.push('"');
         return result.join("");
     }
@@ -82,6 +62,14 @@
         return text.replace(/^/gm, repeatStr(" ", spaces));
     }
     
+    function getKeys(object) {
+        var k = [];
+        for (var i in object) {
+            k.push(i);
+        }
+        return k;
+    }
+    
     function inspect(object, settings) {
         if (!settings) {settings = {}; }
         var maxDepth = settings.maxDepth,
@@ -91,8 +79,8 @@
         if (maxDepth === undef) {maxDepth = INSPECT_DEFAULT_DEPTH; }
         if (functions === undef) {functions = false; }
         
-        function inspMapRepr(obj, depth) {
-            var keys = OBJECT.keys(obj);
+        function inspMapRepr(obj, depth, stack) {
+            var keys = getKeys(obj);
             if (keys.length === 0) {
                 return "{}";
             } else if (depth < 0) {
@@ -100,16 +88,15 @@
             }
             
             return "{" + indentOne(keys.reduce(function inspMapEnum(arr, key) {
-                var inner = inspectProp(obj, key, depth);
+                var inner = inspectProp(obj, key, depth, stack);
                 if (inner.indexOf("\n") !== -1) {
-                    return arr.concat(key + ":\n" +
-                                      repeatStr(" ", indent) + inner);
+                    return arr.concat(key + ":\n" + indentOne(inner, indent));
                 }
                 return arr.concat(key + ": " + inner);
             }, []).join(",\n"), indent).slice(1) + "}";
         }
         
-        function inspArrRepr(arr, depth) {
+        function inspArrRepr(arr, depth, stack) {
             if (arr.length === 0) {
                 return "[]";
             } else if (depth < 0) {
@@ -119,7 +106,7 @@
             var inspd = [];
             
             for (var i = 0; i < arr.length; i++) {
-                inspd.push(inspectProp(arr, i));
+                inspd.push(inspectProp(arr, i, stack));
             }
             
             if (!inspd.reduce(function hasNewlines(last, now) {
@@ -132,7 +119,7 @@
             return "[" + indentOne(inspd.join(",\n"), indent).slice(1) + "]";
         }
         
-        function inspectProp(obj, key, depth) {
+        function inspectProp(obj, key, depth, stack) {
             var origobj = obj;
             if (!(key in obj)) {
                 return "<ERROR: Nonexistent property>";
@@ -143,11 +130,20 @@
                     return "<ERROR: Nonexistent property>";
                 }
             }
-            var descriptor = OBJECT.getOwnPropertyDescriptor(obj, key);
+            var descriptor;
+            try {
+                descriptor = OBJECT.getOwnPropertyDescriptor(obj, key);
+            } catch (e) {
+                return "<" + e.name + ": " + e.message + ">";
+            }
             
             if ("value" in descriptor) {
                 try {
-                    return inspectInner(descriptor.value, depth);
+                    if (stack.indexOf(descriptor.value) >= 0) {
+                        return "<circular>";
+                    }
+                    return inspectInner(descriptor.value, depth,
+                                        stack.concat([descriptor.value]));
                 } catch (e) {
                     return "<" + e.name + ": " + e.message + ">";
                 }
@@ -161,7 +157,7 @@
             return "<I don't know what went wrong :(>";
         }
         
-        function inspectInner(obj, depth) {
+        function inspectInner(obj, depth, stack) {
             var type = typeof obj,
                 realType = OBJECT.prototype.toString.call(obj).slice(8, -1);
             if (type === "string") {
@@ -181,10 +177,10 @@
                 return "[primitive <object>: null]";
             }
             
-            var keys = OBJECT.keys(obj);
+            var keys = getKeys(obj);
             
             if (keys.filter(/./.test.bind(/^[\s\S]*\D+[\s\S]*$/)).length > 0) {
-                var repr = inspMapRepr(obj, depth - 1);
+                var repr = inspMapRepr(obj, depth - 1, stack);
                 if (repr.indexOf("\n") === -1) {
                     return "[<" + realType + ">: " + repr + "]";
                 }
@@ -193,7 +189,7 @@
             }
             
             if (realType === "Array" || obj.length !== undef) {
-                return inspArrRepr(obj, depth - 1);
+                return inspArrRepr(obj, depth - 1, stack);
             }
             
             var s = "" + obj;
@@ -203,7 +199,7 @@
             return "[<" + realType + ">]";
         }
         
-        return inspectInner(object, maxDepth);
+        return inspectInner(object, maxDepth, [object]);
     }
     
     window.debugUtils = {
