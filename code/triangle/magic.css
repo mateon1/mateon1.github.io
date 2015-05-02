@@ -1,0 +1,26 @@
+body {
+    margin: 0;
+    padding: 4px;
+    background-color: darkslategrey;
+    color: #fafafa;
+    font-family: Helvetica, Arial, sans-serif;
+}
+
+#triangleiters {
+    width: 50px;
+}
+
+#controls {
+    margin: auto;
+    width: 80%;
+}
+
+a {
+    color: #D82;
+    text-decoration: none;
+}
+
+a:hover {
+    color: #EA3;
+    text-decoration: underline;
+}
